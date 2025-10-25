@@ -272,4 +272,4 @@ dkms.conf
 *.dwo
 
 # Shortcuts
-.lnk
+*.lnk

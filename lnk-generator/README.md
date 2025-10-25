@@ -2,28 +2,40 @@
 
 A `python` module for generating deceptive LNK files.
 
-## Introduction
-
-TBD
-
 ## Installation
 
-0. Make sure you have a recent version of `python` installed; it was created using python 3.12.3.
+0. Make sure you have a recent version of `python` installed; version 3.10.0 or higher is required.
 1. Download or clone the repository.
 2. Open your favourite command shell and navigate to the repository's main folder.
-3. Simply run `python3 -m lnk-generator.generate --help`.
+3. Run `python3 -m lnk-generator.generate --help` to see the module's manual.
+
+## Examples
+
+| Example | Screenshot | Command |
+| ------- | ---------- | ------- |
+| `SPOOFEXE_SHOWARGS_ENABLETARGET`<br>🟢 Spoofed target EXE<br>🔴 Arguments visible | <img src="/docs/SPOOFEXE_SHOWARGS_ENABLETARGET.jpg" alt="Screenshot" width="250" /> | `python3 -m lnk-generator.generate --fake-path "TrustedExecutable.exe" --target-executable "c:\windows\system32\calc.exe" SPOOFEXE_SHOWARGS_ENABLETARGET` |
+| `REALEXE_HIDEARGS_DISABLETARGET`<br>🔴 Shows real target EXE<br>🟢 Arguments invisible<br>🔵 Target field disabled| <img src="/docs/REALEXE_HIDEARGS_DISABLETARGET.jpg" alt="Screenshot" width="250" /> | `python3 -m lnk-generator.generate --target-executable "c:\windows\system32\conhost.exe" --target-command-line "cmd.exe /c ping 127.0.0.1" REALEXE_HIDEARGS_DISABLETARGET` |
+| `SPOOFEXE_OVERFLOWARGS_DISABLETARGET`<br>🟢 Spoofed target EXE<br>🟢 Arguments invisible<br>🔵 Target field disabled<br>🔵 Updates to true path after opening<br>🔴 Requires Win 11 23H2 or earlier, requires double double-clicking to open | <img src="/docs/SPOOFEXE_OVERFLOWARGS_DISABLETARGET.jpg" alt="Screenshot" width="250" /> | `python3 -m lnk-generator.generate --fake-path "C:\README.txt" --target-executable "c:\windows\system32\cmd.exe" --target-command-line "/c ping 127.0.0.1" --icon "%WINDIR%\System32\imageres.dll" --icon-index=97 SPOOFEXE_OVERFLOWARGS_DISABLETARGET` |
+| `SPOOFEXE_HIDEARGS_DISABLETARGET`<br>🟢 Spoofed target EXE<br>🟢 Arguments invisible<br>🔵 Target field disabled<br>🔵 Updates to true path after opening | <img src="/docs/SPOOFEXE_HIDEARGS_DISABLETARGET.jpg" alt="Screenshot" width="250" /> | `python3 -m lnk-generator.generate --fake-path "F:\USB Drive" --target-executable "%WINDIR%\System32\WindowsPowershell\v1.0\powershell.exe" --target-command-line "/ec ZQBjAGgAbwAgACIASABpACAAZgByAG8AbQAgAEAAVwBpAGUAdAB6AGUAIgA7ACAAcgBlAGEAZAAtAGgAbwBzAHQA" --icon "%WINDIR%\System32\shell32.dll" --icon-index=7 SPOOFEXE_HIDEARGS_DISABLETARGET` |
 
 ## Usage
 
 ```text
+usage: generate.py [-h] --target-executable c:\path\to\file.exe
+                   [--target-command-line "/some /arguments"]
+                   [--fake-path c:\path\to\fake_file.exe]
+                   [--icon c:\path\to\icon.ico] [--icon-index n]
+                   [--output path/to/shortcut.lnk]
+                   {SPOOFEXE_SHOWARGS_ENABLETARGET,REALEXE_HIDEARGS_DISABLETARGET,SPOOFEXE_OVERFLOWARGS_DISABLETARGET,SPOOFEXE_HIDEARGS_DISABLETARGET}
+
 Generate a deceptive LNK file. (C) @Wietze, 2025
 
 positional arguments:
-  {FAKE_IMAGE_PATH,DISABLE_NO_ARGUMENTS,OVERFLOW,FAKE_IMAGE_PATH_DISABLED}
-                        FAKE_IMAGE_PATH          Spoof the target executable (command-line arguments will remain visible)
-                        DISABLE_NO_ARGUMENTS     Disable the entire target field, only show target executable (command-line arguments are invisible)
-                        OVERFLOW                 Spoof the target executable (command-line arguments will remain visible)
-                        FAKE_IMAGE_PATH_DISABLED Spoof the target executable, disable the target field (command-line arguments are invisible)
+  {SPOOFEXE_SHOWARGS_ENABLETARGET,REALEXE_HIDEARGS_DISABLETARGET,SPOOFEXE_OVERFLOWARGS_DISABLETARGET,SPOOFEXE_HIDEARGS_DISABLETARGET}
+                        SPOOFEXE_SHOWARGS_ENABLETARGET          Spoof the target executable (command-line arguments will remain visible, target field will be enabled)
+                        REALEXE_HIDEARGS_DISABLETARGET          Disable the entire target field, only show target executable (command-line arguments are invisible)
+                        SPOOFEXE_OVERFLOWARGS_DISABLETARGET     Spoof the target executable (command-line arguments will be visually hidden, target field will be disabled) - no longer works on Windows 11 24H2 and higher
+                        SPOOFEXE_HIDEARGS_DISABLETARGET         Spoof the target executable (command-line arguments will be fully hidden, target field will be disabled)
 
 options:
   -h, --help            show this help message and exit

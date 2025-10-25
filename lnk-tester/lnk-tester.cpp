@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
     IShellLink *psl;
     IPersistFile *ppf;
 
-    bool verbose = stricmp(argv[2],"-v") == 0;
+    bool verbose = stricmp(argv[2], "-v") == 0;
 
     // Create IShellLink
     hres = CoCreateInstance(CLSID_ShellLink, NULL, CLSCTX_INPROC_SERVER, IID_IShellLink, (LPVOID *)&psl);
@@ -87,20 +87,20 @@ int main(int argc, char *argv[])
     }
 
     ppf->Release();
-    if(verbose) printf("Original: %s|\n", szPath2);
+    if(verbose) printf("[+] provided target (length=%d): [%s]\n", strlen(szPath2), szPath2);
 
     char szPath2_exp[MAX_PATH]; // Declare an LPSTR buffer
     DWORD size = ExpandEnvironmentStringsA(szPath2, szPath2_exp, MAX_PATH);
     if (size == 0) printf("[-] NO EXPANSION");
-    if(verbose) printf("Expected: %s|\n", szPath2_exp);
+    if(verbose) printf("[+] expected target (length=%d): [%s]\n", strlen(szPath2_exp), szPath2_exp);
 
-    if(verbose) printf("Resolved: %s|\n", szPath);
+    if(verbose) printf("[+] resolved target (length=%d): [%s]\n", strlen(szPath), szPath);
 
     if (stricmp(szPath, szPath2_exp) != 0)
     {
-        printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! WARNING\n");
+        printf("[!] WARNING: unexpected target resolution occurred\n");
     }
-    if(verbose) printf("Argument: %s\n\n", szArgs);
+    if(verbose) printf("[+] arguments (length=%d): [%s]\n\n", strlen(szArgs), szArgs);
     psl->Release();
 
     if (stricmp(szPath, szPath2) != 0)
