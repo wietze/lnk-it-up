@@ -5,6 +5,7 @@ from .byte_tools import ByteTools
 # Copyright, 2023-2025
 # Reference: https://winprotocoldocs-bhdugrdyduf5h2e4.b02.azurefd.net/MS-SHLLINK/%5bMS-SHLLINK%5d.pdf
 
+ANSI_ENCODING = 'cp1252' # Windows-1252
 
 class SHELL_LINK_HEADER:
     HeaderSize = ByteTools.create_bytes(0x4C, 4)
@@ -116,7 +117,7 @@ class LINKTARGET_IDLIST:
 
         folders = path_parts[1:-1] if '.' in path_parts[-1] else path_parts[1:]
 
-        result = ([LINKTARGET_IDLIST.ItemID(ITEM.COMPUTER), LINKTARGET_IDLIST.ItemID(b'/'+path[0].encode('utf-8') + b':\\'+(b'\x00' * 22))] +
+        result = ([LINKTARGET_IDLIST.ItemID(ITEM.COMPUTER), LINKTARGET_IDLIST.ItemID(b'/'+path[0].encode(ANSI_ENCODING) + b':\\'+(b'\x00' * 22))] +
                   [LINKTARGET_IDLIST.ItemID(ITEM.generate_folder(part)) for part in folders])
         if '.' in path_parts[-1]:
             result += [LINKTARGET_IDLIST.ItemID(ITEM.generate_file(path_parts[-1]))]
@@ -135,27 +136,27 @@ class ITEM:
 
     @staticmethod
     def generate_unc_path(path: str) -> bytes:
-        return ByteTools.bytearray([0x42, 0x01, 0x00]) + path.encode('utf-8') + ByteTools.create_bytes(0x00, 1)
+        return ByteTools.bytearray([0x42, 0x01, 0x00]) + path.encode(ANSI_ENCODING) + ByteTools.create_bytes(0x00, 1)
 
     @staticmethod
     def generate_network_path(path: str) -> bytes:
-        return ByteTools.bytearray([0xc3, 0x01, 0x00]) + path.encode('utf-8') + ByteTools.create_bytes(0x00, 1)
+        return ByteTools.bytearray([0xc3, 0x01, 0x00]) + path.encode(ANSI_ENCODING) + ByteTools.create_bytes(0x00, 1)
 
     @staticmethod
     def generate_folder(folder_name: str) -> bytes:
-        return ByteTools.create_bytes(0x35, 2) + \
-            ByteTools.create_bytes(0x00, 4) + \
-            ByteTools.create_bytes(0x00, 4) + \
-            ByteTools.create_bytes(0x10, 2) + \
-            folder_name.encode('utf-16le') + ByteTools.create_bytes(0x00, 2)
+        return (ByteTools.create_bytes(0x35, 2) + # 0x30 | 0x01 (IS_DIRECTORY) | 0x04 (UNICODE)
+            ByteTools.create_bytes(0x00, 4) + # File size set to 0
+            ByteTools.create_bytes(0x00, 4) + # Last modification date and time set to 0
+            ByteTools.create_bytes(0x10, 2) + # File attribute flags set to FILE_ATTRIBUTE_DIRECTORY
+            folder_name.encode('utf-16le') + ByteTools.create_bytes(0x00, 2))
 
     @staticmethod
     def generate_file(file_name: str) -> bytes:
-        return ByteTools.create_bytes(0x36, 2) + \
-            ByteTools.create_bytes(0x00, 4) + \
-            ByteTools.create_bytes(0x00, 4) + \
-            ByteTools.create_bytes(0x20, 2) + \
-            file_name.encode('utf-16le') + ByteTools.create_bytes(0x00, 2)
+        return (ByteTools.create_bytes(0x36, 2) + # 0x30 | 0x02 (IS_FILE) | 0x04 (UNICODE)
+            ByteTools.create_bytes(0x00, 4) + # File size set to 0
+            ByteTools.create_bytes(0x00, 4) + # Last modification date and time set to 0
+            ByteTools.create_bytes(0x80, 2) + # File attribute flags set to FILE_NORMAL
+            file_name.encode('utf-16le') + ByteTools.create_bytes(0x00, 2))
 
 
 class LINK_INFO:
@@ -196,7 +197,7 @@ class LINK_INFO:
                 # NetworkProviderType (WNNC_NET_DAV)
                 + ByteTools.create_bytes(0x002E0000, 4) \
                 # NetName
-                + path.encode('utf-8') + ByteTools.create_bytes(0x00, 1)
+                + path.encode(ANSI_ENCODING) + ByteTools.create_bytes(0x00, 1)
             )
 
             return ByteTools.create_bytes(len(result)+4, 4) + result
@@ -205,18 +206,13 @@ class LINK_INFO:
     def write(cls, link_info_flags: list[LinkInfoFlags], path: str) -> bytes:
         # Taken from section 2.3
         volume_block = LINK_INFO.VolumeId().write() if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else LINK_INFO.NetworkRelativeLink().write(path)
-        common_path_suffix = (path.encode('utf-8') if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else path.rsplit('\\', 1)[-1].encode('utf-8')) + ByteTools.create_bytes(0x00, 1)
+        common_path_suffix = (path.encode(ANSI_ENCODING) if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else path.rsplit('\\', 1)[-1].encode(ANSI_ENCODING)) + ByteTools.create_bytes(0x00, 1)
         result = (
-            ByteTools.create_bytes(ByteTools.resolve(link_info_flags), 4) +
-            # VolumeIDOffset (fixed)
-            ByteTools.create_bytes(0x1C if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else 0, 4) +
-            # LocalBasePathOffset
-            ByteTools.create_bytes(28 if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else 0, 4) +
-            # CommonNetworkRelativeLinkOffset
-            ByteTools.create_bytes(28 if LINK_INFO.LinkInfoFlags.CommonNetworkRelativeLinkAndPathSuffix in link_info_flags else 0, 4) +
-            # CommonPathSuffixOffset
-            (ByteTools.create_bytes(28+len(volume_block), 4) if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath else b'') +
-            # LocalBasePath/CommonNetworkRelativeLink
+            ByteTools.create_bytes(ByteTools.resolve(link_info_flags), 4) + # VolumeIDOffset (fixed)
+            ByteTools.create_bytes(0x1C if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else 0, 4) + # LocalBasePathOffset
+            ByteTools.create_bytes(28 if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else 0, 4) + # CommonNetworkRelativeLinkOffset
+            ByteTools.create_bytes(28 if LINK_INFO.LinkInfoFlags.CommonNetworkRelativeLinkAndPathSuffix in link_info_flags else 0, 4) + # CommonPathSuffixOffset
+            (ByteTools.create_bytes(28+len(volume_block), 4) if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath else b'') + # LocalBasePath/CommonNetworkRelativeLink
             volume_block +
             common_path_suffix)
 
@@ -236,7 +232,7 @@ class LINK_INFO:
             ByteTools.create_bytes(0x1C, 4) + \
             ByteTools.create_bytes(0x1C + len(network_block), 4) + \
             network_block + \
-            "\\".rsplit('\\', 1)[-1].encode('utf-8') + \
+            "\\".rsplit('\\', 1)[-1].encode(ANSI_ENCODING) + \
             ByteTools.create_bytes(0x00, 1)
 
         return ByteTools.create_bytes(len(result) + 8, 4) + \
