@@ -50,6 +50,10 @@ if __name__ == '__main__':
         logging.error("Could not write to %s" % output_path)
         sys.exit(-1)
 
+    # Icon logic
+    if opts.icon != parser.get_default("icon") and opts.icon_index == parser.get_default("icon_index"):
+        opts.icon_index = 0
+
     # Create LnkDetails object
     lnk_details = LnkDetails(target_path=opts.target_executable, target_cmd=opts.target_command_line, fake_path=opts.fake_path, icon_path=opts.icon, icon_index=opts.icon_index, output_path=output_path)
 
