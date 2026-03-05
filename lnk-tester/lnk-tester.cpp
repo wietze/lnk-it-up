@@ -7,6 +7,9 @@
 #include <tchar.h>
 #include <stdio.h>
 #include <objbase.h>
+#ifdef _WIN32
+#pragma comment(lib, "ole32.lib")
+#endif
 
 int main(int argc, char *argv[])
 {
