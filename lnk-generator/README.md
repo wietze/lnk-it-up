@@ -24,7 +24,7 @@ Read more about this tool in the blog post [_Trust Me, I'm A Shortcut_](https://
 ## Usage
 
 ```text
-usage: generate.py [-h] --target-executable c:\path\to\file.exe [--target-command-line "/some /arguments"] [--fake-path c:\path\to\fake_file.exe]
+usage: generate.py [-h] --target-executable c:\path\to\file.exe [--target-command-line "/some /arguments"] [--fake-path c:\path\to\fake_file.exe] [--working-dir c:\path\to\working\dir]
                    [--icon c:\path\to\icon.ico] [--icon-index n] [--output path/to/shortcut.lnk]
                    {SPOOFEXE_SHOWARGS_ENABLETARGET,REALEXE_HIDEARGS_DISABLETARGET,SPOOFEXE_OVERFLOWARGS_DISABLETARGET,SPOOFEXE_HIDEARGS_DISABLETARGET,CVE20259491}
 
@@ -50,6 +50,11 @@ LNK target:
                         Any command-line arguments for the target executable.
   --fake-path c:\path\to\fake_file.exe
                         A spoofed path that will be displayed in the LNK's target field.
+  --working-dir c:\path\to\working\dir
+                        The working directory to set for the LNK file. Supported for 
+                        SPOOFEXE_HIDEARGS_DISABLETARGET, REALEXE_HIDEARGS_DISABLETARGET and
+                        SPOOFEXE_OVERFLOWARGS_DISABLETARGET. Not supported for
+                        SPOOFEXE_SHOWARGS_ENABLETARGET and CVE20259491 (a warning will be emitted).
 
 LNK icon:
   --icon c:\path\to\icon.ico
