@@ -15,6 +15,7 @@ class LnkDetails(ABC):
     icon_path: str
     icon_index: int
     output_path: str
+    working_dir: str
 
 
 class LnkWriter(ABC):
@@ -54,6 +55,9 @@ class LnkWriterFakeTargetExe(LnkWriter):
                                         icon_index=lnk.icon_index))
         # LINKTARGET IDLIST
         f.write(LINKTARGET_IDLIST(LINKTARGET_IDLIST.path_to_idlist(lnk.target_path)).write())
+        # WORKINGDIR
+        if lnk.working_dir:
+            logging.warning("--working-dir is not supported for this LNK type and will be ignored by Windows")
         # STRING DATA
         if lnk.target_cmd:
             f.write(ByteTools.create_bytes(len(lnk.target_cmd), 2) + lnk.target_cmd.encode('utf-16le'))
@@ -70,6 +74,7 @@ class LnkWriterDisableWithoutArguments(LnkWriter):
     def _write_(f: io.BufferedWriter, lnk: LnkDetails) -> None:
         # SHELL LINK HEADER
         f.write(SHELL_LINK_HEADER.write(link_flags=[SHELL_LINK_HEADER.LinkFlags.HasLinkTargetIDList,
+                                                    SHELL_LINK_HEADER.LinkFlags.HasWorkingDir if lnk.working_dir else SHELL_LINK_HEADER.LinkFlags.IGNORE,
                                                     SHELL_LINK_HEADER.LinkFlags.HasArguments if lnk.target_cmd else SHELL_LINK_HEADER.LinkFlags.IGNORE,
                                                     SHELL_LINK_HEADER.LinkFlags.HasIconLocation,
                                                     SHELL_LINK_HEADER.LinkFlags.IsUnicode,
@@ -81,6 +86,9 @@ class LnkWriterDisableWithoutArguments(LnkWriter):
                                         icon_index=lnk.icon_index))
         # LINKTARGET IDLIST
         f.write(LINKTARGET_IDLIST(LINKTARGET_IDLIST.path_to_idlist(lnk.target_path)).write())
+        # WORKINGDIR
+        if lnk.working_dir:
+            f.write(ByteTools.create_bytes(len(lnk.working_dir),2) + lnk.working_dir.encode('utf-16le'))
         # STRING DATA
         if lnk.target_cmd:
             f.write(ByteTools.create_bytes(len(lnk.target_cmd), 2) + lnk.target_cmd.encode('utf-16le'))
@@ -99,6 +107,7 @@ class LnkWriterOverflow(LnkWriter):
         f.write(SHELL_LINK_HEADER.write(link_flags=[SHELL_LINK_HEADER.LinkFlags.HasLinkTargetIDList,
                                                     SHELL_LINK_HEADER.LinkFlags.HasLinkInfo,  # required
                                                     # SHELL_LINK_HEADER.LinkFlags.ForceNoLinkInfo, # must be disabled
+                                                    SHELL_LINK_HEADER.LinkFlags.HasWorkingDir if lnk.working_dir else SHELL_LINK_HEADER.LinkFlags.IGNORE,
                                                     SHELL_LINK_HEADER.LinkFlags.HasArguments if lnk.target_cmd else SHELL_LINK_HEADER.LinkFlags.IGNORE,
                                                     SHELL_LINK_HEADER.LinkFlags.HasIconLocation,
                                                     SHELL_LINK_HEADER.LinkFlags.IsUnicode,
@@ -113,6 +122,9 @@ class LnkWriterOverflow(LnkWriter):
         logging.info("successfully overflowed LINKTARGET_IDLIST")
         # LINKINFO
         f.write(LINK_INFO.write([LINK_INFO.LinkInfoFlags.CommonNetworkRelativeLinkAndPathSuffix], path=lnk.target_path))  # required
+        # WORKINGDIR
+        if lnk.working_dir:
+            f.write(ByteTools.create_bytes(len(lnk.working_dir),2) + lnk.working_dir.encode('utf-16le'))
         # STRING DATA
         if lnk.target_cmd:
             f.write(ByteTools.create_bytes(len(lnk.target_cmd), 2) + lnk.target_cmd.encode('utf-16le'))
@@ -134,6 +146,7 @@ class LnkWriterFakeExeDisabled(LnkWriter):
     def _write_(f: io.BufferedWriter, lnk: LnkDetails) -> None:
         # SHELL LINK HEADER
         f.write(SHELL_LINK_HEADER.write(link_flags=[SHELL_LINK_HEADER.LinkFlags.HasLinkTargetIDList,
+                                                    SHELL_LINK_HEADER.LinkFlags.HasWorkingDir if lnk.working_dir else SHELL_LINK_HEADER.LinkFlags.IGNORE,
                                                     SHELL_LINK_HEADER.LinkFlags.HasArguments if lnk.target_cmd else SHELL_LINK_HEADER.LinkFlags.IGNORE,
                                                     SHELL_LINK_HEADER.LinkFlags.HasIconLocation,
                                                     SHELL_LINK_HEADER.LinkFlags.HasExpString],
@@ -142,6 +155,9 @@ class LnkWriterFakeExeDisabled(LnkWriter):
                                         icon_index=lnk.icon_index))
         # LINKTARGET IDLIST
         f.write(LINKTARGET_IDLIST(LINKTARGET_IDLIST.path_to_idlist(lnk.fake_path)).write())
+        # WORKINGDIR
+        if lnk.working_dir:
+            f.write(ByteTools.create_bytes(len(lnk.working_dir),2) + lnk.working_dir.encode(ANSI_ENCODING))
         if lnk.target_cmd:
             f.write(ByteTools.create_bytes(len(lnk.target_cmd), 2) + lnk.target_cmd.encode(ANSI_ENCODING))
         # STRING DATA
@@ -163,7 +179,9 @@ class LnkWriterCVE20259491(LnkWriter):
                                         file_attributes=[],
                                         show_command=SHELL_LINK_HEADER.ShowCommand.SW_SHOWNORMAL,
                                         icon_index=lnk.icon_index))
-
+        # WORKINGDIR
+        if lnk.working_dir:
+            logging.warning("--working-dir is not supported for this LNK type and will be ignored by Windows")
         # STRING DATA
         padding_characters = '\x0A\x0D'
         target_cmd = (padding_characters * (256//len(padding_characters))) + lnk.target_cmd
