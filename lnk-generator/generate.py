@@ -25,7 +25,7 @@ class LnkType(enum.Enum):
     SPOOFEXE_OVERFLOWARGS_DISABLETARGET = (LnkWriterOverflow, "Spoof the target executable (command-line arguments will be visually hidden, target field will be disabled) - no longer works on Windows 11 24H2 and higher")
     SPOOFEXE_HIDEARGS_DISABLETARGET = (LnkWriterFakeExeDisabled, "Spoof the target executable (command-line arguments will be fully hidden, target field will be disabled)")
     CVE20259491 = (LnkWriterCVE20259491, "Only show target executable (command-line arguments are invisible)")
-    SPOOFEXE_RUNDLL = (LnkWriterConfigPanel, "Load an arbitrary DLL whilst disabling the entire target field, optionally displaying a fake path.")
+    SPOOFEXE_RUNDLL_DISABLETARGET = (LnkWriterConfigPanel, "Load an arbitrary DLL whilst disabling the entire target field, optionally displaying a fake path.")
 
 
 if __name__ == '__main__':
