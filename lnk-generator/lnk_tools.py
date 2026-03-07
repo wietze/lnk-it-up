@@ -5,7 +5,8 @@ from .byte_tools import ByteTools
 # Copyright, 2023-2025
 # Reference: https://winprotocoldocs-bhdugrdyduf5h2e4.b02.azurefd.net/MS-SHLLINK/%5bMS-SHLLINK%5d.pdf
 
-ANSI_ENCODING = 'cp1252' # Windows-1252
+ANSI_ENCODING = 'cp1252'  # Windows-1252
+
 
 class SHELL_LINK_HEADER:
     HeaderSize = ByteTools.create_bytes(0x4C, 4)
@@ -132,6 +133,7 @@ class ITEM:
     NETWORK = ByteTools.bytearray([0x1f, 0x58, 0x60, 0x2c, 0x8d, 0x20, 0xea, 0x3a, 0x69, 0x10, 0xa2, 0xd7, 0x08, 0x00, 0x2b, 0x30, 0x30, 0x9d])
     NETWORK_PROVIDER = ByteTools.bytearray([0x47, 0x00, 0x02, 0x45, 0x6e, 0x74, 0x69, 0x72, 0x65, 0x20, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x00])
     WINDOWS_NETWORK = ByteTools.bytearray([0x46, 0x01, 0x82, 0x57, 0x65, 0x62, 0x20, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x00])  # + WEB_CLIENT_NETWORK
+    CONTROL_PANEL = ByteTools.bytearray([0x1f, 0x70, 0x68, 0x06, 0xee, 0x26, 0x0a, 0xa0, 0xd7, 0x44, 0x93, 0x71, 0xbe, 0xb0, 0x64, 0xc9, 0x86, 0x83])
     # WEB_CLIENT_NETWORK = ByteTools.bytearray([0x57, 0x65, 0x62, 0x20, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x20, 0x4e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x00, 0x2E, 0x00])
 
     @staticmethod
@@ -144,19 +146,19 @@ class ITEM:
 
     @staticmethod
     def generate_folder(folder_name: str) -> bytes:
-        return (ByteTools.create_bytes(0x35, 2) + # 0x30 | 0x01 (IS_DIRECTORY) | 0x04 (UNICODE)
-            ByteTools.create_bytes(0x00, 4) + # File size set to 0
-            ByteTools.create_bytes(0x00, 4) + # Last modification date and time set to 0
-            ByteTools.create_bytes(0x10, 2) + # File attribute flags set to FILE_ATTRIBUTE_DIRECTORY
-            folder_name.encode('utf-16le') + ByteTools.create_bytes(0x00, 2))
+        return (ByteTools.create_bytes(0x35, 2) +  # 0x30 | 0x01 (IS_DIRECTORY) | 0x04 (UNICODE)
+                ByteTools.create_bytes(0x00, 4) +  # File size set to 0
+                ByteTools.create_bytes(0x00, 4) +  # Last modification date and time set to 0
+                ByteTools.create_bytes(0x10, 2) +  # File attribute flags set to FILE_ATTRIBUTE_DIRECTORY
+                folder_name.encode('utf-16le') + ByteTools.create_bytes(0x00, 2))
 
     @staticmethod
     def generate_file(file_name: str) -> bytes:
-        return (ByteTools.create_bytes(0x36, 2) + # 0x30 | 0x02 (IS_FILE) | 0x04 (UNICODE)
-            ByteTools.create_bytes(0x00, 4) + # File size set to 0
-            ByteTools.create_bytes(0x00, 4) + # Last modification date and time set to 0
-            ByteTools.create_bytes(0x80, 2) + # File attribute flags set to FILE_NORMAL
-            file_name.encode('utf-16le') + ByteTools.create_bytes(0x00, 2))
+        return (ByteTools.create_bytes(0x36, 2) +  # 0x30 | 0x02 (IS_FILE) | 0x04 (UNICODE)
+                ByteTools.create_bytes(0x00, 4) +  # File size set to 0
+                ByteTools.create_bytes(0x00, 4) +  # Last modification date and time set to 0
+                ByteTools.create_bytes(0x80, 2) +  # File attribute flags set to FILE_NORMAL
+                file_name.encode('utf-16le') + ByteTools.create_bytes(0x00, 2))
 
 
 class LINK_INFO:
@@ -208,11 +210,11 @@ class LINK_INFO:
         volume_block = LINK_INFO.VolumeId().write() if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else LINK_INFO.NetworkRelativeLink().write(path)
         common_path_suffix = (path.encode(ANSI_ENCODING) if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else path.rsplit('\\', 1)[-1].encode(ANSI_ENCODING)) + ByteTools.create_bytes(0x00, 1)
         result = (
-            ByteTools.create_bytes(ByteTools.resolve(link_info_flags), 4) + # VolumeIDOffset (fixed)
-            ByteTools.create_bytes(0x1C if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else 0, 4) + # LocalBasePathOffset
-            ByteTools.create_bytes(28 if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else 0, 4) + # CommonNetworkRelativeLinkOffset
-            ByteTools.create_bytes(28 if LINK_INFO.LinkInfoFlags.CommonNetworkRelativeLinkAndPathSuffix in link_info_flags else 0, 4) + # CommonPathSuffixOffset
-            (ByteTools.create_bytes(28+len(volume_block), 4) if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath else b'') + # LocalBasePath/CommonNetworkRelativeLink
+            ByteTools.create_bytes(ByteTools.resolve(link_info_flags), 4) +  # VolumeIDOffset (fixed)
+            ByteTools.create_bytes(0x1C if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else 0, 4) +  # LocalBasePathOffset
+            ByteTools.create_bytes(28 if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath in link_info_flags else 0, 4) +  # CommonNetworkRelativeLinkOffset
+            ByteTools.create_bytes(28 if LINK_INFO.LinkInfoFlags.CommonNetworkRelativeLinkAndPathSuffix in link_info_flags else 0, 4) +  # CommonPathSuffixOffset
+            (ByteTools.create_bytes(28+len(volume_block), 4) if LINK_INFO.LinkInfoFlags.VolumeIDAndLocalBasePath else b'') +  # LocalBasePath/CommonNetworkRelativeLink
             volume_block +
             common_path_suffix)
 

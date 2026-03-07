@@ -174,3 +174,41 @@ class LnkWriterCVE20259491(LnkWriter):
                 + lnk.target_path.encode(ANSI_ENCODING) + ByteTools.create_bytes(0x00, 260-len(lnk.target_path.encode(ANSI_ENCODING)))
                 + lnk.target_path.encode('utf-16le') + ByteTools.create_bytes(0x00, 520)
                 + ByteTools.create_bytes(0x00, 4))
+
+
+class LnkWriterConfigPanel(LnkWriter):
+    # https://github.com/libyal/libfwsi/blob/main/documentation/Windows%20Shell%20Item%20format.asciidoc#451-control-panel-cpl-file-shell-item
+    @staticmethod
+    def _write_(f: io.BufferedWriter, lnk: LnkDetails) -> None:
+        # SHELL LINK HEADER
+        f.write(SHELL_LINK_HEADER.write(link_flags=[SHELL_LINK_HEADER.LinkFlags.HasLinkTargetIDList,
+                                                    SHELL_LINK_HEADER.LinkFlags.HasArguments if lnk.target_cmd else SHELL_LINK_HEADER.LinkFlags.IGNORE,
+                                                    SHELL_LINK_HEADER.LinkFlags.HasIconLocation,
+                                                    SHELL_LINK_HEADER.LinkFlags.EnableTargetMetadata],
+                                        file_attributes=[],
+                                        show_command=SHELL_LINK_HEADER.ShowCommand.SW_SHOWNORMAL,
+                                        icon_index=lnk.icon_index))
+
+        # LINKTARGET IDLIST
+        target_cmd = lnk.target_path
+        fake_path = lnk.fake_path or ""
+        comment = ""
+        f.write(LINKTARGET_IDLIST([LINKTARGET_IDLIST.ItemID(ITEM.CONTROL_PANEL),
+                LINKTARGET_IDLIST.ItemID(ByteTools.bytearray([0x01]) +  # Class Type Indicator
+                                         ByteTools.bytearray([0x00]) +  # Unknown
+                                         ByteTools.bytearray([0x84, 0x21, 0xde, 0x39]) +  # Signature
+                                         ByteTools.bytearray([0x05, 0x00, 0x00, 0x00])),  # Control panel category: "System & Security"
+                LINKTARGET_IDLIST.ItemID(ByteTools.bytearray([0x00, 0x00]) +              # Class type indicator
+                                         ByteTools.bytearray([0x37, 0xff, 0xff, 0xff]) +  # Signature: Control Panel CPL File Shell item
+                                         ByteTools.bytearray([0x00, 0x00, 0x00, 0x00]) +  # Null bytes
+                                         ByteTools.bytearray([0x00, 0x6a, 0x00, 0x00]) +  # Unknown
+                                         ByteTools.bytearray([0x00, 0x00, 0x00, 0x00]) +  # Unknown
+                                         ByteTools.create_bytes(len(target_cmd)+1, 2) +   # Offset of name
+                                         ByteTools.create_bytes(len(target_cmd)+1+len(fake_path), 2) +        # Offset of comment
+                                         target_cmd.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00]) +  # Target DLL path; can be any UNC path
+                                         fake_path.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00]) +   # Displayed target / argument passed to DLL
+                                         comment.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00])       # Comment
+                                         )]).write())
+
+        # STRING DATA
+        f.write(ByteTools.create_bytes(len(lnk.icon_path), 2) + lnk.icon_path.encode(ANSI_ENCODING))
