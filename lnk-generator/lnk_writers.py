@@ -194,10 +194,10 @@ class LnkWriterConfigPanel(LnkWriter):
         fake_path = lnk.fake_path or ""
         comment = ""
         f.write(LINKTARGET_IDLIST([LINKTARGET_IDLIST.ItemID(ITEM.CONTROL_PANEL),
-                LINKTARGET_IDLIST.ItemID(ByteTools.bytearray([0x01]) + # Class Type Indicator
-                                         ByteTools.bytearray([0x00]) + # Unknown
-                                         ByteTools.bytearray([0x84, 0x21, 0xde, 0x39]) + # Signature
-                                         ByteTools.bytearray([0x05, 0x00, 0x00, 0x00])), # Control panel category: "System & Security"
+                LINKTARGET_IDLIST.ItemID(ByteTools.bytearray([0x01]) +  # Class Type Indicator
+                                         ByteTools.bytearray([0x00]) +  # Unknown
+                                         ByteTools.bytearray([0x84, 0x21, 0xde, 0x39]) +  # Signature
+                                         ByteTools.bytearray([0x05, 0x00, 0x00, 0x00])),  # Control panel category: "System & Security"
                 LINKTARGET_IDLIST.ItemID(ByteTools.bytearray([0x00, 0x00]) +              # Class type indicator
                                          ByteTools.bytearray([0x37, 0xff, 0xff, 0xff]) +  # Signature: Control Panel CPL File Shell item
                                          ByteTools.bytearray([0x00, 0x00, 0x00, 0x00]) +  # Null bytes
@@ -205,7 +205,7 @@ class LnkWriterConfigPanel(LnkWriter):
                                          ByteTools.bytearray([0x00, 0x00, 0x00, 0x00]) +  # Unknown
                                          ByteTools.create_bytes(len(target_cmd)+1, 2) +   # Offset of name
                                          ByteTools.create_bytes(len(target_cmd)+1+len(fake_path), 2) +       # Offset of comment
-                                         target_cmd.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00]) + # Target DLL path; can be any UNC path
+                                         target_cmd.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00]) +  # Target DLL path; can be any UNC path
                                          fake_path.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00]) +  # Displayed target / argument passed to DLL
                                          comment.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00])      # Comment
                                          )]).write())
