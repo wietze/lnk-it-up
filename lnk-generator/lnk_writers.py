@@ -204,11 +204,12 @@ class LnkWriterConfigPanel(LnkWriter):
                                          ByteTools.bytearray([0x00, 0x6a, 0x00, 0x00]) +  # Unknown
                                          ByteTools.bytearray([0x00, 0x00, 0x00, 0x00]) +  # Unknown
                                          ByteTools.create_bytes(len(target_cmd)+1, 2) +   # Offset of name
-                                         ByteTools.create_bytes(len(target_cmd)+1+len(fake_path), 2) +       # Offset of comment
+                                         ByteTools.create_bytes(len(target_cmd)+1+len(fake_path), 2) +        # Offset of comment
                                          target_cmd.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00]) +  # Target DLL path; can be any UNC path
-                                         fake_path.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00]) +  # Displayed target / argument passed to DLL
-                                         comment.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00])      # Comment
+                                         fake_path.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00]) +   # Displayed target / argument passed to DLL
+                                         comment.encode('utf-16le') + ByteTools.bytearray([0x00, 0x00])       # Comment
                                          )]).write())
 
         # STRING DATA
         f.write(ByteTools.create_bytes(len(lnk.icon_path), 2) + lnk.icon_path.encode(ANSI_ENCODING))
+sg
