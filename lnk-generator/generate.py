@@ -62,7 +62,7 @@ if __name__ == '__main__':
     lnk_type = LnkType[opts.lnk_type]
 
 
-    if lnk_type in [LnkType.SPOOFEXE_RUNDLL]:
+    if lnk_type in [LnkType.SPOOFEXE_RUNDLL_DISABLETARGET]:
         if lnk_details.target_cmd:
             logging.warning("argument --target-cmd will be ignored for this LNK type")
         if not any(lnk_details.target_path.lower().endswith(x) for x in ['.dll', 'cpl']):
@@ -72,12 +72,12 @@ if __name__ == '__main__':
     if lnk_type in [LnkType.REALEXE_HIDEARGS_DISABLETARGET, LnkType.CVE20259491]:
         if lnk_details.fake_path:
             logging.warning("argument --fake-path will be ignored for this LNK type")
-    elif lnk_type not in [LnkType.SPOOFEXE_RUNDLL]:
+    elif lnk_type not in [LnkType.SPOOFEXE_RUNDLL_DISABLETARGET]:
         if not lnk_details.fake_path:
             logging.error("argument --fake-path required for this LNK type")
             sys.exit(-1)
 
-    if '%' in lnk_details.target_path and not lnk_type in [LnkType.SPOOFEXE_HIDEARGS_DISABLETARGET, LnkType.CVE20259491, LnkType.SPOOFEXE_RUNDLL]:
+    if '%' in lnk_details.target_path and not lnk_type in [LnkType.SPOOFEXE_HIDEARGS_DISABLETARGET, LnkType.CVE20259491, LnkType.SPOOFEXE_RUNDLL_DISABLETARGET]:
         logging.error("argument --target-executable cannot contain environment variables for this LNK type")
         sys.exit(-1)
 

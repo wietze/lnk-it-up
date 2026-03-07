@@ -212,4 +212,3 @@ class LnkWriterConfigPanel(LnkWriter):
 
         # STRING DATA
         f.write(ByteTools.create_bytes(len(lnk.icon_path), 2) + lnk.icon_path.encode(ANSI_ENCODING))
-sg
