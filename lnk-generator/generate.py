@@ -36,6 +36,7 @@ if __name__ == '__main__':
     parser_target.add_argument("--target-executable", required=True, type=str, help="The path of the executable that should be executed.", metavar="c:\\path\\to\\file.exe")
     parser_target.add_argument("--target-command-line", required=False, type=str, help="Any command-line arguments for the target executable.", metavar="\"/some /arguments\"")
     parser_target.add_argument("--fake-path", required=False, type=str, help="A spoofed path that will be displayed in the LNK's target field.", metavar="c:\\path\\to\\fake_file.exe")
+    parser_target.add_argument("--working-dir", required=False, type=str, help="The working directory to set for the LNK file.", metavar="c:\\path\\to\\working\\dir")
 
     parser_icon = parser.add_argument_group("LNK icon")
     parser_icon.add_argument("--icon", required=False, type=str, default="%PROGRAMFILES(x86)%\\Microsoft\\Edge\\Application\\msedge.exe", help="A path to a .ico file that will be used as the LNK file's icon. Supports environment variables.", metavar="c:\\path\\to\\icon.ico")
@@ -56,7 +57,7 @@ if __name__ == '__main__':
         opts.icon_index = 0
 
     # Create LnkDetails object
-    lnk_details = LnkDetails(target_path=opts.target_executable, target_cmd=opts.target_command_line, fake_path=opts.fake_path, icon_path=opts.icon, icon_index=opts.icon_index, output_path=output_path)
+    lnk_details = LnkDetails(target_path=opts.target_executable, target_cmd=opts.target_command_line, fake_path=opts.fake_path, icon_path=opts.icon, icon_index=opts.icon_index, output_path=output_path, working_dir=opts.working_dir)
 
     # Look up and execute LnkWriter subclass
     lnk_type = LnkType[opts.lnk_type]
